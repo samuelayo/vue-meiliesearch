@@ -1,0 +1,5 @@
+const movies = require('./movies.json')
+const MeiliSearch = require('meilisearch')
+const client = new MeiliSearch({ host: 'http://127.0.0.1:7700' })
+const index = client.getIndex('movies')
+index.addDocuments(movies).then((res) => console.log(res))
