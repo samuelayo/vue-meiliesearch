@@ -1,66 +1,74 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue-instantsearch@3.2.0/dist/vue-instantsearch.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@meilisearch/instant-meilisearch/dist/instant-meilisearch.umd.min.js"></script>
     </head>
     <body>
         <div id="app">
             <h1 style="text-align: center;">Search Movies</h1>
-            <form class="example">
-                <input type="text" placeholder="Search.." name="search" v-model="query">
-              </form>
-              
-              <div class="search-result" v-for="result in results">
-                <div class="icon" style=" padding-right: 5px !important;">
-                  <img :src="result.poster" width="60" />
-                </div>
-                <div class="content">
-                    <!-- display movie name  -->
-                  <h2>
-                    {{ result.title }}</h2>
-                  <p>
-                    <!-- display movie year  -->
-                    <span class="company">{{ convertDate(result.release_date) }}</span>
-                    -
-                    <a>
-                      <span class="stars"><span class="stars-inner" style="width:74px"></span></span>
-                      <span class="reviews"> {{ result.genres ? result.genres.join(", ") : "NA" }}</span>
-                    </a>
-                  </p>
-                  <div>
-                    <p>{{ result.overview }} &hellip;</p>
+            <!-- <form class="example">
+                <input type="text" placeholder="Search.." name="search" >
+              </form> -->
+
+              <ais-instant-search :search-client="searchClient" index-name="movies">
+                <ais-configure
+                  :hits-per-page.camel="200"
+                />
+                <ais-search-box placeholder="Search here…" class="searchbox"></ais-search-box>
+                <ais-hits>
+                  <div slot="item" slot-scope="{ item }">
+                    <div class="search-result" >
+                      <div class="icon" style=" padding-right: 5px !important;">
+                        <img :src="item.poster" width="60" />
+                      </div>
+                      <div class="content">
+                          <!-- display movie name  -->
+                        <h2>
+                          {{ item.title }}</h2>
+                        <p>
+                          <!-- display movie year  -->
+                          <span class="company">{{ convertDate(item.release_date) }}</span>
+                          -
+                          <a>
+                            <span class="stars"><span class="stars-inner" style="width:74px"></span></span>
+                            <span class="reviews"> {{ item.genres ? item.genres.join(", ") : "NA" }}</span>
+                          </a>
+                        </p>
+                        <div>
+                          <p>{{ item.overview }} &hellip;</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </ais-hits>
+              </ais-instant-search>
         </div>
         <style>
 
             * {
               box-sizing: border-box;
             }
+            ol {
+                list-style-type: none;
+            }
             
             /* Style the search field */
-            form.example input[type=text] {
+            .ais-SearchBox-input {
               padding: 10px;
               font-size: 17px;
               border: 1px solid grey;
-              float: left;
-              width: 100%;
+              width: 90%;
+              margin-left: 6%;
               background: #f1f1f1;
+              margin-bottom: 3px;
+
             }
             
             /* Style the submit button */
-            form.example button {
-              float: left;
-              width: 20%;
-              padding: 10px;
-              background: #2196F3;
-              color: white;
-              font-size: 17px;
-              border: 1px solid grey;
-              border-left: none; /* Prevent double borders */
-              cursor: pointer;
+            .ais-SearchBox-submit{
+              display: none;
             }
             
             form.example button:hover {
@@ -114,9 +122,9 @@
               }
             }
             
-            .search-box {
-                
-              }
+            .searchbox {
+  margin-bottom: 2rem;
+}
             .search-result {
               background-color: #fff;
               border-radius: 5px;
@@ -179,33 +187,18 @@
         </style>
 
         <script>
+            // notify Vue to use the VueInstantSearch plugin 
+            Vue.use(VueInstantSearch)
             // create a new Vue instance
             var app = new Vue({
                 el: '#app',
-                // declare the data for the component (An array that houses the results and a query that holds the current search string)
                 data: {
-                    results: [],
-                    query: ''
+                    searchClient: instantMeiliSearch('http://127.0.0.1:7700')
                 },
                 // declare methods in this Vue component. here only one method which performs the search is defined
                 methods: {
-                    // make an axios request to the server with the current search query
-                    search: function() {
-                        axios.get("http://127.0.0.1:3001/search?q=" + this.query)
-                            .then(response => {
-                                this.results = response.data;
-                                console.log(this.results)
-                            })
-                    }, 
                     convertDate: function(timestamp){
                         return new Date(timestamp).toISOString().substring(0,10);;
-                    }
-                },
-                // declare Vue watchers
-                watch: {
-                    // watch for change in the query string and recall the search method
-                    query: function() {
-                        this.search();
                     }
                 }
 
